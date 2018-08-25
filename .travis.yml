@@ -1,0 +1,36 @@
+branches:
+  only:
+    - master
+addons:
+  apt:
+    packages:
+      - texlive-publishers
+      - texlive-lang-portuguese
+      - texlive-latex-extra
+      - texlive-fonts-recommended
+      - texlive-science
+      - latex-xcolor
+
+cache:
+  apt: true
+
+script:
+  - mkdir _build
+  - find . -name "*.tex" -exec sh -c "iconv -f UTF-8 -t ISO-8859-1 {} > {}.iso88591"  \; -exec mv "{}".iso88591 "{}" \;
+  - python texliveonfly.py modelo_dissertacao.tex
+  - python texliveonfly.py modelo_dissertacao.tex
+  - python texliveonfly.py modelo_dissertacao.tex
+
+before_deploy:
+  - git config --local user.name "travis-ci"
+  - git config --local user.email "bot@travis-ci.com"
+  - git tag "v$(date +'%Y.%m.%d.%H%M')"
+
+deploy:
+  provider: releases
+  api_key: $GIT_TOKEN
+  file: 
+    - ./_build/modelo_dissertacao.pdf
+  skip_cleanup: true
+  on:
+    branch: master
